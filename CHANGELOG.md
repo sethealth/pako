@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [2.0.0] - WIP
+### Fixed
+- Multistream source inflate now works.
+- Z_SYNC_FLUSH in deflate now works.
+
 ### Changed
 - Removed binary strings and `Array` support.
 - Removed fallbacks for unsupported TypedArray methods (`.set()`, `.subarray()`).
 - Removed support of `Inflate` & `Deflate` instance create without `new`.
-- Removed `Z_SYNC_FLUSH` related code from wrappers (buggy and no tests).
+- Rewritten top-level wrappers.
+- `Inflate.push()` no longer needs second param (end is auto-detected).
 - Switched to es6. Legacy es5 builds available in `/dist`.
 - Structure of `/dist` folder changed.
 - Upgraded build tools to modern ones.

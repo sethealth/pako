@@ -92,7 +92,6 @@ describe('Dummy push (force end)', () => {
 
     const inflator = new pako.Inflate();
     inflator.push(data);
-    inflator.push([], true);
 
     assert.deepStrictEqual(inflator.result, pako.inflate(data));
   });
@@ -119,7 +118,7 @@ describe('Edge condition', () => {
       assert.ok(!inflator.err, 'Inflate failed with status ' + inflator.err);
     }
 
-    inflator.push(new Uint8Array(0), true);
+    inflator.push(new Uint8Array(0));
 
     assert.ok(!inflator.err, 'Inflate failed with status ' + inflator.err);
     assert.deepStrictEqual(data, inflator.result);
