@@ -1,9 +1,5 @@
 
 /*! pako 1.0.11 https://github.com/nodeca/pako @license (MIT AND Zlib) */
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
 //
@@ -6434,38 +6430,4 @@ function inflateRaw(input, options) {
   return inflate$1(input, options);
 }
 
-exports.Deflate = Deflate;
-exports.Inflate = Inflate;
-exports.Z_BEST_COMPRESSION = Z_BEST_COMPRESSION;
-exports.Z_BEST_SPEED = Z_BEST_SPEED;
-exports.Z_BINARY = Z_BINARY$1;
-exports.Z_BLOCK = Z_BLOCK;
-exports.Z_BUF_ERROR = Z_BUF_ERROR;
-exports.Z_DATA_ERROR = Z_DATA_ERROR;
-exports.Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
-exports.Z_DEFAULT_STRATEGY = Z_DEFAULT_STRATEGY;
-exports.Z_DEFLATED = Z_DEFLATED;
-exports.Z_ERRNO = Z_ERRNO;
-exports.Z_FILTERED = Z_FILTERED;
-exports.Z_FINISH = Z_FINISH;
-exports.Z_FIXED = Z_FIXED$1;
-exports.Z_FULL_FLUSH = Z_FULL_FLUSH;
-exports.Z_HUFFMAN_ONLY = Z_HUFFMAN_ONLY;
-exports.Z_NEED_DICT = Z_NEED_DICT;
-exports.Z_NO_COMPRESSION = Z_NO_COMPRESSION;
-exports.Z_NO_FLUSH = Z_NO_FLUSH;
-exports.Z_OK = Z_OK;
-exports.Z_PARTIAL_FLUSH = Z_PARTIAL_FLUSH;
-exports.Z_RLE = Z_RLE;
-exports.Z_STREAM_END = Z_STREAM_END;
-exports.Z_STREAM_ERROR = Z_STREAM_ERROR;
-exports.Z_SYNC_FLUSH = Z_SYNC_FLUSH;
-exports.Z_TEXT = Z_TEXT$1;
-exports.Z_TREES = Z_TREES;
-exports.Z_UNKNOWN = Z_UNKNOWN$1;
-exports.deflate = deflate$1;
-exports.deflateRaw = deflateRaw;
-exports.gzip = gzip;
-exports.inflate = inflate$1;
-exports.inflateRaw = inflateRaw;
-exports.ungzip = inflate$1;
+export { Deflate, Inflate, Z_BEST_COMPRESSION, Z_BEST_SPEED, Z_BINARY$1 as Z_BINARY, Z_BLOCK, Z_BUF_ERROR, Z_DATA_ERROR, Z_DEFAULT_COMPRESSION, Z_DEFAULT_STRATEGY, Z_DEFLATED, Z_ERRNO, Z_FILTERED, Z_FINISH, Z_FIXED$1 as Z_FIXED, Z_FULL_FLUSH, Z_HUFFMAN_ONLY, Z_NEED_DICT, Z_NO_COMPRESSION, Z_NO_FLUSH, Z_OK, Z_PARTIAL_FLUSH, Z_RLE, Z_STREAM_END, Z_STREAM_ERROR, Z_SYNC_FLUSH, Z_TEXT$1 as Z_TEXT, Z_TREES, Z_UNKNOWN$1 as Z_UNKNOWN, deflate$1 as deflate, deflateRaw, gzip, inflate$1 as inflate, inflateRaw, inflate$1 as ungzip };
