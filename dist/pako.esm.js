@@ -1,5 +1,3 @@
-
-/*! pako 1.0.11 https://github.com/nodeca/pako @license (MIT AND Zlib) */
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
 //
@@ -1392,7 +1390,7 @@ const Z_NEED_DICT =        2;
 const Z_ERRNO =           -1;
 const Z_STREAM_ERROR =    -2;
 const Z_DATA_ERROR =      -3;
-// export const _MEM_ERROR:     -4;
+const Z_MEM_ERROR =     -4;
 const Z_BUF_ERROR =       -5;
 // export const  _VERSION_ERROR: -6;
 
@@ -3462,17 +3460,6 @@ function ZStream() {
 
 const toString = Object.prototype.toString;
 
-/* Public constants ==========================================================*/
-/* ===========================================================================*/
-
-const {
-  Z_NO_FLUSH: Z_NO_FLUSH$1, Z_FINISH: Z_FINISH$1,
-  Z_OK: Z_OK$1, Z_STREAM_END: Z_STREAM_END$1,
-  Z_DEFAULT_COMPRESSION: Z_DEFAULT_COMPRESSION$1,
-  Z_DEFAULT_STRATEGY: Z_DEFAULT_STRATEGY$1,
-  Z_DEFLATED: Z_DEFLATED$1
-} = require('./zlib/constants');
-
 /* ===========================================================================*/
 
 
@@ -3563,12 +3550,12 @@ const {
  **/
 function Deflate(options) {
   this.options = assign({
-    level: Z_DEFAULT_COMPRESSION$1,
-    method: Z_DEFLATED$1,
+    level: Z_DEFAULT_COMPRESSION,
+    method: Z_DEFLATED,
     chunkSize: 16384,
     windowBits: 15,
     memLevel: 8,
-    strategy: Z_DEFAULT_STRATEGY$1
+    strategy: Z_DEFAULT_STRATEGY
   }, options || {});
 
   let opt = this.options;
@@ -3598,7 +3585,7 @@ function Deflate(options) {
     opt.strategy
   );
 
-  if (status !== Z_OK$1) {
+  if (status !== Z_OK) {
     throw new Error(msg[status]);
   }
 
@@ -3620,7 +3607,7 @@ function Deflate(options) {
 
     status = deflateSetDictionary(this.strm, dict);
 
-    if (status !== Z_OK$1) {
+    if (status !== Z_OK) {
       throw new Error(msg[status]);
     }
 
@@ -3660,7 +3647,7 @@ Deflate.prototype.push = function (data, mode) {
 
   if (this.ended) { return false; }
 
-  const _mode = (mode === ~~mode) ? mode : ((mode === true) ? Z_FINISH$1 : Z_NO_FLUSH$1);
+  const _mode = (mode === ~~mode) ? mode : ((mode === true) ? Z_FINISH : Z_NO_FLUSH);
 
   // Convert data if needed
   if (typeof data === 'string') {
@@ -3683,22 +3670,22 @@ Deflate.prototype.push = function (data, mode) {
     }
     status = deflate(strm, _mode);    /* no bad return value */
 
-    if (status !== Z_STREAM_END$1 && status !== Z_OK$1) {
+    if (status !== Z_STREAM_END && status !== Z_OK) {
       this.onEnd(status);
       this.ended = true;
       return false;
     }
-    if (strm.avail_out === 0 || (strm.avail_in === 0 && _mode === Z_FINISH$1)) {
+    if (strm.avail_out === 0 || (strm.avail_in === 0 && _mode === Z_FINISH)) {
       this.onData(strm.output.length === strm.next_out ? strm.output : strm.output.subarray(0, strm.next_out));
     }
-  } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END$1);
+  } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END);
 
   // Finalize on the last chunk.
-  if (_mode === Z_FINISH$1) {
+  if (_mode === Z_FINISH) {
     status = deflateEnd(this.strm);
     this.onEnd(status);
     this.ended = true;
-    return status === Z_OK$1;
+    return status === Z_OK;
   }
 
   return true;
@@ -3728,7 +3715,7 @@ Deflate.prototype.onData = function (chunk) {
  **/
 Deflate.prototype.onEnd = function (status) {
   // On success - join
-  if (status === Z_OK$1) {
+  if (status === Z_OK) {
     this.result = flattenChunks(this.chunks);
   }
   this.chunks = [];
@@ -4497,15 +4484,6 @@ const CODES$1 = 0;
 const LENS$1 = 1;
 const DISTS$1 = 2;
 
-/* Public constants ==========================================================*/
-/* ===========================================================================*/
-
-const {
-  Z_FINISH: Z_FINISH$2, Z_BLOCK: Z_BLOCK$1, Z_TREES: Z_TREES$1,
-  Z_OK: Z_OK$2, Z_STREAM_END: Z_STREAM_END$2, Z_NEED_DICT: Z_NEED_DICT$1, Z_STREAM_ERROR: Z_STREAM_ERROR$1, Z_DATA_ERROR: Z_DATA_ERROR$1, Z_MEM_ERROR, Z_BUF_ERROR: Z_BUF_ERROR$1,
-  Z_DEFLATED: Z_DEFLATED$2
-} = require('./constants');
-
 
 /* STATES ====================================================================*/
 /* ===========================================================================*/
@@ -4622,7 +4600,7 @@ function InflateState() {
 
 const inflateResetKeep = (strm) => {
 
-  if (!strm || !strm.state) { return Z_STREAM_ERROR$1; }
+  if (!strm || !strm.state) { return Z_STREAM_ERROR; }
   const state = strm.state;
   strm.total_in = strm.total_out = state.total = 0;
   strm.msg = ''; /*Z_NULL*/
@@ -4643,13 +4621,13 @@ const inflateResetKeep = (strm) => {
   state.sane = 1;
   state.back = -1;
   //Tracev((stderr, "inflate: reset\n"));
-  return Z_OK$2;
+  return Z_OK;
 };
 
 
 const inflateReset = (strm) => {
 
-  if (!strm || !strm.state) { return Z_STREAM_ERROR$1; }
+  if (!strm || !strm.state) { return Z_STREAM_ERROR; }
   const state = strm.state;
   state.wsize = 0;
   state.whave = 0;
@@ -4663,7 +4641,7 @@ const inflateReset2 = (strm, windowBits) => {
   let wrap;
 
   /* get the state */
-  if (!strm || !strm.state) { return Z_STREAM_ERROR$1; }
+  if (!strm || !strm.state) { return Z_STREAM_ERROR; }
   const state = strm.state;
 
   /* extract wrap request from windowBits parameter */
@@ -4680,7 +4658,7 @@ const inflateReset2 = (strm, windowBits) => {
 
   /* set number of window bits, free window if different */
   if (windowBits && (windowBits < 8 || windowBits > 15)) {
-    return Z_STREAM_ERROR$1;
+    return Z_STREAM_ERROR;
   }
   if (state.window !== null && state.wbits !== windowBits) {
     state.window = null;
@@ -4695,7 +4673,7 @@ const inflateReset2 = (strm, windowBits) => {
 
 const inflateInit2 = (strm, windowBits) => {
 
-  if (!strm) { return Z_STREAM_ERROR$1; }
+  if (!strm) { return Z_STREAM_ERROR; }
   //strm.msg = Z_NULL;                 /* in case we return an error */
 
   const state = new InflateState();
@@ -4705,7 +4683,7 @@ const inflateInit2 = (strm, windowBits) => {
   strm.state = state;
   state.window = null/*Z_NULL*/;
   const ret = inflateReset2(strm, windowBits);
-  if (ret !== Z_OK$2) {
+  if (ret !== Z_OK) {
     strm.state = null/*Z_NULL*/;
   }
   return ret;
@@ -4848,7 +4826,7 @@ const inflate = (strm, flush) => {
 
   if (!strm || !strm.state || !strm.output ||
       (!strm.input && strm.avail_in !== 0)) {
-    return Z_STREAM_ERROR$1;
+    return Z_STREAM_ERROR;
   }
 
   state = strm.state;
@@ -4868,7 +4846,7 @@ const inflate = (strm, flush) => {
 
   _in = have;
   _out = left;
-  ret = Z_OK$2;
+  ret = Z_OK;
 
   inf_leave: // goto emulation
   for (;;) {
@@ -4911,7 +4889,7 @@ const inflate = (strm, flush) => {
           state.mode = BAD$1;
           break;
         }
-        if ((hold & 0x0f)/*BITS(4)*/ !== Z_DEFLATED$2) {
+        if ((hold & 0x0f)/*BITS(4)*/ !== Z_DEFLATED) {
           strm.msg = 'unknown compression method';
           state.mode = BAD$1;
           break;
@@ -4953,7 +4931,7 @@ const inflate = (strm, flush) => {
         }
         //===//
         state.flags = hold;
-        if ((state.flags & 0xff) !== Z_DEFLATED$2) {
+        if ((state.flags & 0xff) !== Z_DEFLATED) {
           strm.msg = 'unknown compression method';
           state.mode = BAD$1;
           break;
@@ -5204,13 +5182,13 @@ const inflate = (strm, flush) => {
           state.hold = hold;
           state.bits = bits;
           //---
-          return Z_NEED_DICT$1;
+          return Z_NEED_DICT;
         }
         strm.adler = state.check = 1/*adler32(0L, Z_NULL, 0)*/;
         state.mode = TYPE$1;
         /* falls through */
       case TYPE$1:
-        if (flush === Z_BLOCK$1 || flush === Z_TREES$1) { break inf_leave; }
+        if (flush === Z_BLOCK || flush === Z_TREES) { break inf_leave; }
         /* falls through */
       case TYPEDO:
         if (state.last) {
@@ -5246,7 +5224,7 @@ const inflate = (strm, flush) => {
             //Tracev((stderr, "inflate:     fixed codes block%s\n",
             //        state.last ? " (last)" : ""));
             state.mode = LEN_;             /* decode codes */
-            if (flush === Z_TREES$1) {
+            if (flush === Z_TREES) {
               //--- DROPBITS(2) ---//
               hold >>>= 2;
               bits -= 2;
@@ -5294,7 +5272,7 @@ const inflate = (strm, flush) => {
         bits = 0;
         //===//
         state.mode = COPY_;
-        if (flush === Z_TREES$1) { break inf_leave; }
+        if (flush === Z_TREES) { break inf_leave; }
         /* falls through */
       case COPY_:
         state.mode = COPY;
@@ -5541,7 +5519,7 @@ const inflate = (strm, flush) => {
         }
         //Tracev((stderr, 'inflate:       codes ok\n'));
         state.mode = LEN_;
-        if (flush === Z_TREES$1) { break inf_leave; }
+        if (flush === Z_TREES) { break inf_leave; }
         /* falls through */
       case LEN_:
         state.mode = LEN;
@@ -5859,17 +5837,17 @@ const inflate = (strm, flush) => {
         state.mode = DONE;
         /* falls through */
       case DONE:
-        ret = Z_STREAM_END$2;
+        ret = Z_STREAM_END;
         break inf_leave;
       case BAD$1:
-        ret = Z_DATA_ERROR$1;
+        ret = Z_DATA_ERROR;
         break inf_leave;
       case MEM:
         return Z_MEM_ERROR;
       case SYNC:
         /* falls through */
       default:
-        return Z_STREAM_ERROR$1;
+        return Z_STREAM_ERROR;
     }
   }
 
@@ -5892,7 +5870,7 @@ const inflate = (strm, flush) => {
   //---
 
   if (state.wsize || (_out !== strm.avail_out && state.mode < BAD$1 &&
-                      (state.mode < CHECK || flush !== Z_FINISH$2))) {
+                      (state.mode < CHECK || flush !== Z_FINISH))) {
     if (updatewindow(strm, strm.output, strm.next_out, _out - strm.avail_out)) ;
   }
   _in -= strm.avail_in;
@@ -5907,8 +5885,8 @@ const inflate = (strm, flush) => {
   strm.data_type = state.bits + (state.last ? 64 : 0) +
                     (state.mode === TYPE$1 ? 128 : 0) +
                     (state.mode === LEN_ || state.mode === COPY_ ? 256 : 0);
-  if (((_in === 0 && _out === 0) || flush === Z_FINISH$2) && ret === Z_OK$2) {
-    ret = Z_BUF_ERROR$1;
+  if (((_in === 0 && _out === 0) || flush === Z_FINISH) && ret === Z_OK) {
+    ret = Z_BUF_ERROR;
   }
   return ret;
 };
@@ -5917,7 +5895,7 @@ const inflate = (strm, flush) => {
 const inflateEnd = (strm) => {
 
   if (!strm || !strm.state /*|| strm->zfree == (free_func)0*/) {
-    return Z_STREAM_ERROR$1;
+    return Z_STREAM_ERROR;
   }
 
   let state = strm.state;
@@ -5925,21 +5903,21 @@ const inflateEnd = (strm) => {
     state.window = null;
   }
   strm.state = null;
-  return Z_OK$2;
+  return Z_OK;
 };
 
 
 const inflateGetHeader = (strm, head) => {
 
   /* check state */
-  if (!strm || !strm.state) { return Z_STREAM_ERROR$1; }
+  if (!strm || !strm.state) { return Z_STREAM_ERROR; }
   const state = strm.state;
-  if ((state.wrap & 2) === 0) { return Z_STREAM_ERROR$1; }
+  if ((state.wrap & 2) === 0) { return Z_STREAM_ERROR; }
 
   /* save header structure */
   state.head = head;
   head.done = false;
-  return Z_OK$2;
+  return Z_OK;
 };
 
 
@@ -5951,11 +5929,11 @@ const inflateSetDictionary = (strm, dictionary) => {
   let ret;
 
   /* check state */
-  if (!strm /* == Z_NULL */ || !strm.state /* == Z_NULL */) { return Z_STREAM_ERROR$1; }
+  if (!strm /* == Z_NULL */ || !strm.state /* == Z_NULL */) { return Z_STREAM_ERROR; }
   state = strm.state;
 
   if (state.wrap !== 0 && state.mode !== DICT) {
-    return Z_STREAM_ERROR$1;
+    return Z_STREAM_ERROR;
   }
 
   /* check for correct dictionary identifier */
@@ -5964,7 +5942,7 @@ const inflateSetDictionary = (strm, dictionary) => {
     /* dictid = adler32(dictid, dictionary, dictLength); */
     dictid = adler32(dictid, dictionary, dictLength, 0);
     if (dictid !== state.check) {
-      return Z_DATA_ERROR$1;
+      return Z_DATA_ERROR;
     }
   }
   /* copy dictionary to window using updatewindow(), which will amend the
@@ -5976,7 +5954,7 @@ const inflateSetDictionary = (strm, dictionary) => {
   }
   state.havedict = 1;
   // Tracev((stderr, "inflate:   dictionary set\n"));
-  return Z_OK$2;
+  return Z_OK;
 };
 
 /* Not implemented
@@ -6045,14 +6023,6 @@ function GZheader() {
 }
 
 const toString$1 = Object.prototype.toString;
-
-/* Public constants ==========================================================*/
-/* ===========================================================================*/
-
-const {
-  Z_NO_FLUSH: Z_NO_FLUSH$2, Z_FINISH: Z_FINISH$3,
-  Z_OK: Z_OK$3, Z_STREAM_END: Z_STREAM_END$3, Z_NEED_DICT: Z_NEED_DICT$2, Z_BUF_ERROR: Z_BUF_ERROR$2
-} = require('./zlib/constants');
 
 /* ===========================================================================*/
 
@@ -6179,7 +6149,7 @@ function Inflate(options) {
     opt.windowBits
   );
 
-  if (status !== Z_OK$3) {
+  if (status !== Z_OK) {
     throw new Error(msg[status]);
   }
 
@@ -6197,7 +6167,7 @@ function Inflate(options) {
     }
     if (opt.raw) { //In raw mode we need to set the dictionary early
       status = inflateSetDictionary(this.strm, opt.dictionary);
-      if (status !== Z_OK$3) {
+      if (status !== Z_OK) {
         throw new Error(msg[status]);
       }
     }
@@ -6240,7 +6210,7 @@ Inflate.prototype.push = function (data, mode) {
   let allowBufError = false;
 
   if (this.ended) { return false; }
-  _mode = (mode === ~~mode) ? mode : ((mode === true) ? Z_FINISH$3 : Z_NO_FLUSH$2);
+  _mode = (mode === ~~mode) ? mode : ((mode === true) ? Z_FINISH : Z_NO_FLUSH);
 
   // Convert data if needed
   if (toString$1.call(data) === '[object ArrayBuffer]') {
@@ -6259,25 +6229,25 @@ Inflate.prototype.push = function (data, mode) {
       strm.avail_out = chunkSize;
     }
 
-    status = inflate(strm, Z_NO_FLUSH$2);    /* no bad return value */
+    status = inflate(strm, Z_NO_FLUSH);    /* no bad return value */
 
-    if (status === Z_NEED_DICT$2 && dictionary) {
+    if (status === Z_NEED_DICT && dictionary) {
       status = inflateSetDictionary(this.strm, dictionary);
     }
 
-    if (status === Z_BUF_ERROR$2 && allowBufError === true) {
-      status = Z_OK$3;
+    if (status === Z_BUF_ERROR && allowBufError === true) {
+      status = Z_OK;
       allowBufError = false;
     }
 
-    if (status !== Z_STREAM_END$3 && status !== Z_OK$3) {
+    if (status !== Z_STREAM_END && status !== Z_OK) {
       this.onEnd(status);
       this.ended = true;
       return false;
     }
 
     if (strm.next_out) {
-      if (strm.avail_out === 0 || status === Z_STREAM_END$3 || (strm.avail_in === 0 && _mode === Z_FINISH$3)) {
+      if (strm.avail_out === 0 || status === Z_STREAM_END || (strm.avail_in === 0 && _mode === Z_FINISH)) {
 
         if (this.options.to === 'string') {
 
@@ -6310,18 +6280,18 @@ Inflate.prototype.push = function (data, mode) {
       allowBufError = true;
     }
 
-  } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END$3);
+  } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END);
 
-  if (status === Z_STREAM_END$3) {
-    _mode = Z_FINISH$3;
+  if (status === Z_STREAM_END) {
+    _mode = Z_FINISH;
   }
 
   // Finalize on the last chunk.
-  if (_mode === Z_FINISH$3) {
+  if (_mode === Z_FINISH) {
     status = inflateEnd(this.strm);
     this.onEnd(status);
     this.ended = true;
-    return status === Z_OK$3;
+    return status === Z_OK;
   }
 
   return true;
@@ -6352,7 +6322,7 @@ Inflate.prototype.onData = function (chunk) {
  **/
 Inflate.prototype.onEnd = function (status) {
   // On success - join
-  if (status === Z_OK$3) {
+  if (status === Z_OK) {
     if (this.options.to === 'string') {
       this.result = this.chunks.join('');
     } else {
@@ -6430,4 +6400,4 @@ function inflateRaw(input, options) {
   return inflate$1(input, options);
 }
 
-export { Deflate, Inflate, Z_BEST_COMPRESSION, Z_BEST_SPEED, Z_BINARY$1 as Z_BINARY, Z_BLOCK, Z_BUF_ERROR, Z_DATA_ERROR, Z_DEFAULT_COMPRESSION, Z_DEFAULT_STRATEGY, Z_DEFLATED, Z_ERRNO, Z_FILTERED, Z_FINISH, Z_FIXED$1 as Z_FIXED, Z_FULL_FLUSH, Z_HUFFMAN_ONLY, Z_NEED_DICT, Z_NO_COMPRESSION, Z_NO_FLUSH, Z_OK, Z_PARTIAL_FLUSH, Z_RLE, Z_STREAM_END, Z_STREAM_ERROR, Z_SYNC_FLUSH, Z_TEXT$1 as Z_TEXT, Z_TREES, Z_UNKNOWN$1 as Z_UNKNOWN, deflate$1 as deflate, deflateRaw, gzip, inflate$1 as inflate, inflateRaw, inflate$1 as ungzip };
+export { Deflate, Inflate, Z_BEST_COMPRESSION, Z_BEST_SPEED, Z_BINARY$1 as Z_BINARY, Z_BLOCK, Z_BUF_ERROR, Z_DATA_ERROR, Z_DEFAULT_COMPRESSION, Z_DEFAULT_STRATEGY, Z_DEFLATED, Z_ERRNO, Z_FILTERED, Z_FINISH, Z_FIXED$1 as Z_FIXED, Z_FULL_FLUSH, Z_HUFFMAN_ONLY, Z_MEM_ERROR, Z_NEED_DICT, Z_NO_COMPRESSION, Z_NO_FLUSH, Z_OK, Z_PARTIAL_FLUSH, Z_RLE, Z_STREAM_END, Z_STREAM_ERROR, Z_SYNC_FLUSH, Z_TEXT$1 as Z_TEXT, Z_TREES, Z_UNKNOWN$1 as Z_UNKNOWN, deflate$1 as deflate, deflateRaw, gzip, inflate$1 as inflate, inflateRaw, inflate$1 as ungzip };
