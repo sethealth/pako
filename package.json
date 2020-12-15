@@ -23,10 +23,6 @@
   "main": "dist/pako.js",
   "license": "(MIT AND Zlib)",
   "repository": "nodeca/pako",
-  "exports": {
-    "import": "./dist/pako.esm.mjs",
-    "require": "./index.js"
-  },
   "scripts": {
     "lint": "eslint .",
     "test": "npm run lint && mocha",
