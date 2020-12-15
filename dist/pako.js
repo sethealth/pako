@@ -1345,7 +1345,7 @@ const crc32 = (crc, buf, len, pos) => {
 //   misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-var msg = {
+const msg = {
   2:      'need dictionary',     /* Z_NEED_DICT       2  */
   1:      'stream end',          /* Z_STREAM_END      1  */
   0:      '',                    /* Z_OK              0  */
@@ -1421,6 +1421,38 @@ const Z_UNKNOWN$1 =                2;
 const Z_DEFLATED =               8;
   //Z_NULL:                 null // Use -1 or null inline, depending on var type
 
+const constants = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  Z_NO_FLUSH: Z_NO_FLUSH,
+  Z_PARTIAL_FLUSH: Z_PARTIAL_FLUSH,
+  Z_SYNC_FLUSH: Z_SYNC_FLUSH,
+  Z_FULL_FLUSH: Z_FULL_FLUSH,
+  Z_FINISH: Z_FINISH,
+  Z_BLOCK: Z_BLOCK,
+  Z_TREES: Z_TREES,
+  Z_OK: Z_OK,
+  Z_STREAM_END: Z_STREAM_END,
+  Z_NEED_DICT: Z_NEED_DICT,
+  Z_ERRNO: Z_ERRNO,
+  Z_STREAM_ERROR: Z_STREAM_ERROR,
+  Z_DATA_ERROR: Z_DATA_ERROR,
+  Z_MEM_ERROR: Z_MEM_ERROR,
+  Z_BUF_ERROR: Z_BUF_ERROR,
+  Z_NO_COMPRESSION: Z_NO_COMPRESSION,
+  Z_BEST_SPEED: Z_BEST_SPEED,
+  Z_BEST_COMPRESSION: Z_BEST_COMPRESSION,
+  Z_DEFAULT_COMPRESSION: Z_DEFAULT_COMPRESSION,
+  Z_FILTERED: Z_FILTERED,
+  Z_HUFFMAN_ONLY: Z_HUFFMAN_ONLY,
+  Z_RLE: Z_RLE,
+  Z_FIXED: Z_FIXED$1,
+  Z_DEFAULT_STRATEGY: Z_DEFAULT_STRATEGY,
+  Z_BINARY: Z_BINARY$1,
+  Z_TEXT: Z_TEXT$1,
+  Z_UNKNOWN: Z_UNKNOWN$1,
+  Z_DEFLATED: Z_DEFLATED
+});
+
 /*============================================================================*/
 
 
@@ -1476,6 +1508,13 @@ const zero$1 = (buf) => {
   let len = buf.length; while (--len >= 0) { buf[len] = 0; }
 };
 
+
+/* eslint-disable new-cap */
+let HASH_ZLIB = (s, prev, data) => ((prev << s.hash_shift) ^ data) & s.hash_mask;
+// This hash causes less collisions, https://github.com/nodeca/pako/issues/135
+// But breaks binary compatibility
+//let HASH_FAST = (s, prev, data) => ((prev << 8) + (prev >> 8) + (data << 4)) & s.hash_mask;
+let HASH = HASH_ZLIB;
 
 /* =========================================================================
  * Flush as much pending output as possible. All deflate() output goes
@@ -1776,13 +1815,13 @@ const fill_window = (s) => {
       s.ins_h = s.window[str];
 
       /* UPDATE_HASH(s, s->ins_h, s->window[str + 1]); */
-      s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[str + 1]) & s.hash_mask;
+      s.ins_h = HASH(s, s.ins_h, s.window[str + 1]);
 //#if MIN_MATCH != 3
 //        Call update_hash() MIN_MATCH-3 more times
 //#endif
       while (s.insert) {
         /* UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]); */
-        s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[str + MIN_MATCH$1 - 1]) & s.hash_mask;
+        s.ins_h = HASH(s, s.ins_h, s.window[str + MIN_MATCH$1 - 1]);
 
         s.prev[str & s.w_mask] = s.head[s.ins_h];
         s.head[s.ins_h] = str;
@@ -1972,7 +2011,7 @@ const deflate_fast = (s, flush) => {
     hash_head = 0/*NIL*/;
     if (s.lookahead >= MIN_MATCH$1) {
       /*** INSERT_STRING(s, s.strstart, hash_head); ***/
-      s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[s.strstart + MIN_MATCH$1 - 1]) & s.hash_mask;
+      s.ins_h = HASH(s, s.ins_h, s.window[s.strstart + MIN_MATCH$1 - 1]);
       hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
       s.head[s.ins_h] = s.strstart;
       /***/
@@ -2006,7 +2045,7 @@ const deflate_fast = (s, flush) => {
         do {
           s.strstart++;
           /*** INSERT_STRING(s, s.strstart, hash_head); ***/
-          s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[s.strstart + MIN_MATCH$1 - 1]) & s.hash_mask;
+          s.ins_h = HASH(s, s.ins_h, s.window[s.strstart + MIN_MATCH$1 - 1]);
           hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
           s.head[s.ins_h] = s.strstart;
           /***/
@@ -2021,7 +2060,7 @@ const deflate_fast = (s, flush) => {
         s.match_length = 0;
         s.ins_h = s.window[s.strstart];
         /* UPDATE_HASH(s, s.ins_h, s.window[s.strstart+1]); */
-        s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[s.strstart + 1]) & s.hash_mask;
+        s.ins_h = HASH(s, s.ins_h, s.window[s.strstart + 1]);
 
 //#if MIN_MATCH != 3
 //                Call UPDATE_HASH() MIN_MATCH-3 more times
@@ -2102,7 +2141,7 @@ const deflate_slow = (s, flush) => {
     hash_head = 0/*NIL*/;
     if (s.lookahead >= MIN_MATCH$1) {
       /*** INSERT_STRING(s, s.strstart, hash_head); ***/
-      s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[s.strstart + MIN_MATCH$1 - 1]) & s.hash_mask;
+      s.ins_h = HASH(s, s.ins_h, s.window[s.strstart + MIN_MATCH$1 - 1]);
       hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
       s.head[s.ins_h] = s.strstart;
       /***/
@@ -2154,7 +2193,7 @@ const deflate_slow = (s, flush) => {
       do {
         if (++s.strstart <= max_insert) {
           /*** INSERT_STRING(s, s.strstart, hash_head); ***/
-          s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[s.strstart + MIN_MATCH$1 - 1]) & s.hash_mask;
+          s.ins_h = HASH(s, s.ins_h, s.window[s.strstart + MIN_MATCH$1 - 1]);
           hash_head = s.prev[s.strstart & s.w_mask] = s.head[s.ins_h];
           s.head[s.ins_h] = s.strstart;
           /***/
@@ -3174,7 +3213,7 @@ const deflateSetDictionary = (strm, dictionary) => {
     let n = s.lookahead - (MIN_MATCH$1 - 1);
     do {
       /* UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]); */
-      s.ins_h = ((s.ins_h << s.hash_shift) ^ s.window[str + MIN_MATCH$1 - 1]) & s.hash_mask;
+      s.ins_h = HASH(s, s.ins_h, s.window[str + MIN_MATCH$1 - 1]);
 
       s.prev[str & s.w_mask] = s.head[s.ins_h];
 
@@ -3199,12 +3238,12 @@ const deflateSetDictionary = (strm, dictionary) => {
 };
 
 /* Not implemented
-exports.deflateBound = deflateBound;
-exports.deflateCopy = deflateCopy;
-exports.deflateParams = deflateParams;
-exports.deflatePending = deflatePending;
-exports.deflatePrime = deflatePrime;
-exports.deflateTune = deflateTune;
+module.exports.deflateBound = deflateBound;
+module.exports.deflateCopy = deflateCopy;
+module.exports.deflateParams = deflateParams;
+module.exports.deflatePending = deflatePending;
+module.exports.deflatePrime = deflatePrime;
+module.exports.deflateTune = deflateTune;
 */
 
 const _has = (obj, key) => {
@@ -3620,21 +3659,18 @@ function Deflate(options) {
 }
 
 /**
- * Deflate#push(data[, mode]) -> Boolean
+ * Deflate#push(data[, flush_mode]) -> Boolean
  * - data (Uint8Array|ArrayBuffer|String): input data. Strings will be
  *   converted to utf8 byte sequence.
- * - mode (Number|Boolean): 0..6 for corresponding Z_NO_FLUSH..Z_TREE modes.
+ * - flush_mode (Number|Boolean): 0..6 for corresponding Z_NO_FLUSH..Z_TREE modes.
  *   See constants. Skipped or `false` means Z_NO_FLUSH, `true` means Z_FINISH.
  *
  * Sends input data to deflate pipe, generating [[Deflate#onData]] calls with
- * new compressed chunks. Returns `true` on success. The last data block must have
- * mode Z_FINISH (or `true`). That will flush internal pending buffers and call
- * [[Deflate#onEnd]].
+ * new compressed chunks. Returns `true` on success. The last data block must
+ * have `flush_mode` Z_FINISH (or `true`). That will flush internal pending
+ * buffers and call [[Deflate#onEnd]].
  *
  * On fail call [[Deflate#onEnd]] with error code and return false.
- *
- * Note. Don't skip last param and always use the same type in your code
- * (boolean or number). That will improve JS speed.
  *
  * ##### Example
  *
@@ -3644,14 +3680,15 @@ function Deflate(options) {
  * push(chunk, true);  // push last chunk
  * ```
  **/
-Deflate.prototype.push = function (data, mode) {
+Deflate.prototype.push = function (data, flush_mode) {
   const strm = this.strm;
   const chunkSize = this.options.chunkSize;
-  let status;
+  let status, _flush_mode;
 
   if (this.ended) { return false; }
 
-  const _mode = (mode === ~~mode) ? mode : ((mode === true) ? Z_FINISH : Z_NO_FLUSH);
+  if (flush_mode === ~~flush_mode) _flush_mode = flush_mode;
+  else _flush_mode = flush_mode === true ? Z_FINISH : Z_NO_FLUSH;
 
   // Convert data if needed
   if (typeof data === 'string') {
@@ -3666,30 +3703,47 @@ Deflate.prototype.push = function (data, mode) {
   strm.next_in = 0;
   strm.avail_in = strm.input.length;
 
-  do {
+  for (;;) {
     if (strm.avail_out === 0) {
       strm.output = new Uint8Array(chunkSize);
       strm.next_out = 0;
       strm.avail_out = chunkSize;
     }
-    status = deflate(strm, _mode);    /* no bad return value */
 
-    if (status !== Z_STREAM_END && status !== Z_OK) {
+    // Make sure avail_out > 6 to avoid repeating markers
+    if ((_flush_mode === Z_SYNC_FLUSH || _flush_mode === Z_FULL_FLUSH) && strm.avail_out <= 6) {
+      this.onData(strm.output.subarray(0, strm.next_out));
+      strm.avail_out = 0;
+      continue;
+    }
+
+    status = deflate(strm, _flush_mode);
+
+    // Ended => flush and finish
+    if (status === Z_STREAM_END) {
+      if (strm.next_out > 0) {
+        this.onData(strm.output.subarray(0, strm.next_out));
+      }
+      status = deflateEnd(this.strm);
       this.onEnd(status);
       this.ended = true;
-      return false;
+      return status === Z_OK;
     }
-    if (strm.avail_out === 0 || (strm.avail_in === 0 && _mode === Z_FINISH)) {
-      this.onData(strm.output.length === strm.next_out ? strm.output : strm.output.subarray(0, strm.next_out));
-    }
-  } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END);
 
-  // Finalize on the last chunk.
-  if (_mode === Z_FINISH) {
-    status = deflateEnd(this.strm);
-    this.onEnd(status);
-    this.ended = true;
-    return status === Z_OK;
+    // Flush if out buffer full
+    if (strm.avail_out === 0) {
+      this.onData(strm.output);
+      continue;
+    }
+
+    // Flush if requested and has data
+    if (_flush_mode > 0 && strm.next_out > 0) {
+      this.onData(strm.output.subarray(0, strm.next_out));
+      strm.avail_out = 0;
+      continue;
+    }
+
+    if (strm.avail_in === 0) break;
   }
 
   return true;
@@ -5962,13 +6016,13 @@ const inflateSetDictionary = (strm, dictionary) => {
 };
 
 /* Not implemented
-exports.inflateCopy = inflateCopy;
-exports.inflateGetDictionary = inflateGetDictionary;
-exports.inflateMark = inflateMark;
-exports.inflatePrime = inflatePrime;
-exports.inflateSync = inflateSync;
-exports.inflateSyncPoint = inflateSyncPoint;
-exports.inflateUndermine = inflateUndermine;
+module.exports.inflateCopy = inflateCopy;
+module.exports.inflateGetDictionary = inflateGetDictionary;
+module.exports.inflateMark = inflateMark;
+module.exports.inflatePrime = inflatePrime;
+module.exports.inflateSync = inflateSync;
+module.exports.inflateSyncPoint = inflateSyncPoint;
+module.exports.inflateUndermine = inflateUndermine;
 */
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
@@ -6110,7 +6164,7 @@ const toString$1 = Object.prototype.toString;
  **/
 function Inflate(options) {
   this.options = assign({
-    chunkSize: 16384,
+    chunkSize: 1024 * 64,
     windowBits: 15,
     to: ''
   }, options || {});
@@ -6179,20 +6233,21 @@ function Inflate(options) {
 }
 
 /**
- * Inflate#push(data[, mode]) -> Boolean
+ * Inflate#push(data[, flush_mode]) -> Boolean
  * - data (Uint8Array|ArrayBuffer): input data
- * - mode (Number|Boolean): 0..6 for corresponding Z_NO_FLUSH..Z_TREE modes.
- *   See constants. Skipped or `false` means Z_NO_FLUSH, `true` means Z_FINISH.
+ * - flush_mode (Number|Boolean): 0..6 for corresponding Z_NO_FLUSH..Z_TREE
+ *   flush modes. See constants. Skipped or `false` means Z_NO_FLUSH,
+ *   `true` means Z_FINISH.
  *
  * Sends input data to inflate pipe, generating [[Inflate#onData]] calls with
- * new output chunks. Returns `true` on success. The last data block must have
- * mode Z_FINISH (or `true`). That will flush internal pending buffers and call
- * [[Inflate#onEnd]].
+ * new output chunks. Returns `true` on success. If end of stream detected,
+ * [[Inflate#onEnd]] will be called.
+ *
+ * `flush_mode` is not needed for normal operation, because end of stream
+ * detected automatically. You may try to use it for advanced things, but
+ * this functionality was not tested.
  *
  * On fail call [[Inflate#onEnd]] with error code and return false.
- *
- * Note. Don't skip last param and always use the same type in your code
- * (boolean or number). That will improve JS speed.
  *
  * ##### Example
  *
@@ -6202,19 +6257,16 @@ function Inflate(options) {
  * push(chunk, true);  // push last chunk
  * ```
  **/
-Inflate.prototype.push = function (data, mode) {
+Inflate.prototype.push = function (data, flush_mode) {
   const strm = this.strm;
   const chunkSize = this.options.chunkSize;
   const dictionary = this.options.dictionary;
-  let status, _mode;
-  let next_out_utf8, tail, utf8str;
+  let status, _flush_mode, last_avail_out;
 
-  // Flag to properly process Z_BUF_ERROR on testing inflate call
-  // when we check that all output data was flushed.
-  let allowBufError = false;
+  if (this.ended) return false;
 
-  if (this.ended) { return false; }
-  _mode = (mode === ~~mode) ? mode : ((mode === true) ? Z_FINISH : Z_NO_FLUSH);
+  if (flush_mode === ~~flush_mode) _flush_mode = flush_mode;
+  else _flush_mode = flush_mode === true ? Z_FINISH : Z_NO_FLUSH;
 
   // Convert data if needed
   if (toString$1.call(data) === '[object ArrayBuffer]') {
@@ -6226,44 +6278,64 @@ Inflate.prototype.push = function (data, mode) {
   strm.next_in = 0;
   strm.avail_in = strm.input.length;
 
-  do {
+  for (;;) {
     if (strm.avail_out === 0) {
       strm.output = new Uint8Array(chunkSize);
       strm.next_out = 0;
       strm.avail_out = chunkSize;
     }
 
-    status = inflate(strm, Z_NO_FLUSH);    /* no bad return value */
+    status = inflate(strm, _flush_mode);
 
     if (status === Z_NEED_DICT && dictionary) {
-      status = inflateSetDictionary(this.strm, dictionary);
+      status = inflateSetDictionary(strm, dictionary);
+
+      if (status === Z_OK) {
+        status = inflate(strm, _flush_mode);
+      } else if (status === Z_DATA_ERROR) {
+        // Replace code with more verbose
+        status = Z_NEED_DICT;
+      }
     }
 
-    if (status === Z_BUF_ERROR && allowBufError === true) {
-      status = Z_OK;
-      allowBufError = false;
+    // Skip snyc markers if more data follows and not raw mode
+    while (strm.avail_in > 0 &&
+           status === Z_STREAM_END &&
+           strm.state.wrap > 0 &&
+           data[strm.next_in] !== 0)
+    {
+      inflateReset(strm);
+      status = inflate(strm, _flush_mode);
     }
 
-    if (status !== Z_STREAM_END && status !== Z_OK) {
-      this.onEnd(status);
-      this.ended = true;
-      return false;
+    switch (status) {
+      case Z_STREAM_ERROR:
+      case Z_DATA_ERROR:
+      case Z_NEED_DICT:
+      case Z_MEM_ERROR:
+        this.onEnd(status);
+        this.ended = true;
+        return false;
     }
+
+    // Remember real `avail_out` value, because we may patch out buffer content
+    // to align utf8 strings boundaries.
+    last_avail_out = strm.avail_out;
 
     if (strm.next_out) {
-      if (strm.avail_out === 0 || status === Z_STREAM_END || (strm.avail_in === 0 && _mode === Z_FINISH)) {
+      if (strm.avail_out === 0 || status === Z_STREAM_END) {
 
         if (this.options.to === 'string') {
 
-          next_out_utf8 = utf8border(strm.output, strm.next_out);
+          let next_out_utf8 = utf8border(strm.output, strm.next_out);
 
-          tail = strm.next_out - next_out_utf8;
-          utf8str = buf2string(strm.output, next_out_utf8);
+          let tail = strm.next_out - next_out_utf8;
+          let utf8str = buf2string(strm.output, next_out_utf8);
 
-          // move tail
+          // move tail & realign counters
           strm.next_out = tail;
           strm.avail_out = chunkSize - tail;
-          if (tail) { strm.output.set(strm.output.subarray(next_out_utf8, next_out_utf8 + tail), 0); }
+          if (tail) strm.output.set(strm.output.subarray(next_out_utf8, next_out_utf8 + tail), 0);
 
           this.onData(utf8str);
 
@@ -6273,29 +6345,18 @@ Inflate.prototype.push = function (data, mode) {
       }
     }
 
-    // When no more input data, we should check that internal inflate buffers
-    // are flushed. The only way to do it when avail_out = 0 - run one more
-    // inflate pass. But if output data not exists, inflate return Z_BUF_ERROR.
-    // Here we set flag to process this error properly.
-    //
-    // NOTE. Deflate does not return error in this case and does not needs such
-    // logic.
-    if (strm.avail_in === 0 && strm.avail_out === 0) {
-      allowBufError = true;
+    // Must repeat iteration if out buffer is full
+    if (status === Z_OK && last_avail_out === 0) continue;
+
+    // Finalize if end of stream reached.
+    if (status === Z_STREAM_END) {
+      status = inflateEnd(this.strm);
+      this.onEnd(status);
+      this.ended = true;
+      return true;
     }
 
-  } while ((strm.avail_in > 0 || strm.avail_out === 0) && status !== Z_STREAM_END);
-
-  if (status === Z_STREAM_END) {
-    _mode = Z_FINISH;
-  }
-
-  // Finalize on the last chunk.
-  if (_mode === Z_FINISH) {
-    status = inflateEnd(this.strm);
-    this.onEnd(status);
-    this.ended = true;
-    return status === Z_OK;
+    if (strm.avail_in === 0) break;
   }
 
   return true;
@@ -6381,10 +6442,10 @@ Inflate.prototype.onEnd = function (status) {
 function inflate$1(input, options) {
   const inflator = new Inflate(options);
 
-  inflator.push(input, true);
+  inflator.push(input);
 
   // That will never happens, if you don't cheat with options :)
-  if (inflator.err) { throw inflator.msg || msg[inflator.err]; }
+  if (inflator.err) throw inflator.msg || msg[inflator.err];
 
   return inflator.result;
 }
@@ -6406,34 +6467,7 @@ function inflateRaw(input, options) {
 
 exports.Deflate = Deflate;
 exports.Inflate = Inflate;
-exports.Z_BEST_COMPRESSION = Z_BEST_COMPRESSION;
-exports.Z_BEST_SPEED = Z_BEST_SPEED;
-exports.Z_BINARY = Z_BINARY$1;
-exports.Z_BLOCK = Z_BLOCK;
-exports.Z_BUF_ERROR = Z_BUF_ERROR;
-exports.Z_DATA_ERROR = Z_DATA_ERROR;
-exports.Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
-exports.Z_DEFAULT_STRATEGY = Z_DEFAULT_STRATEGY;
-exports.Z_DEFLATED = Z_DEFLATED;
-exports.Z_ERRNO = Z_ERRNO;
-exports.Z_FILTERED = Z_FILTERED;
-exports.Z_FINISH = Z_FINISH;
-exports.Z_FIXED = Z_FIXED$1;
-exports.Z_FULL_FLUSH = Z_FULL_FLUSH;
-exports.Z_HUFFMAN_ONLY = Z_HUFFMAN_ONLY;
-exports.Z_MEM_ERROR = Z_MEM_ERROR;
-exports.Z_NEED_DICT = Z_NEED_DICT;
-exports.Z_NO_COMPRESSION = Z_NO_COMPRESSION;
-exports.Z_NO_FLUSH = Z_NO_FLUSH;
-exports.Z_OK = Z_OK;
-exports.Z_PARTIAL_FLUSH = Z_PARTIAL_FLUSH;
-exports.Z_RLE = Z_RLE;
-exports.Z_STREAM_END = Z_STREAM_END;
-exports.Z_STREAM_ERROR = Z_STREAM_ERROR;
-exports.Z_SYNC_FLUSH = Z_SYNC_FLUSH;
-exports.Z_TEXT = Z_TEXT$1;
-exports.Z_TREES = Z_TREES;
-exports.Z_UNKNOWN = Z_UNKNOWN$1;
+exports.constants = constants;
 exports.deflate = deflate$1;
 exports.deflateRaw = deflateRaw;
 exports.gzip = gzip;
