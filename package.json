@@ -23,7 +23,6 @@
   "main": "dist/pako.js",
   "license": "(MIT AND Zlib)",
   "repository": "nodeca/pako",
-  "module": "./dist/pako.esm.mjs",
   "exports": {
     "import": "./dist/pako.esm.mjs",
     "require": "./index.js"
